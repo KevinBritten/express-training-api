@@ -107,3 +107,42 @@ app.put("/trains/:id", (req, res) => {
     });
   });
 });
+
+app.delete("/trains/:id", (req, res) => {
+  const filePath = path.join(__dirname, "data", "trains.json");
+
+  const id = req.params.id;
+  if (!id) {
+    res.status(500).send("No id provided");
+    return;
+  }
+
+  fs.readFile(filePath, "utf8", (err, data) => {
+    if (err) {
+      console.error(err);
+      res.status(500).send("Error reading file");
+      return;
+    }
+
+    let trains = JSON.parse(data);
+
+    let trainIndex = trains.findIndex((train) => train.id === id);
+
+    if (trainIndex === -1) {
+      res.status(500).send(`No train with id ${id} found`);
+      return;
+    } else {
+      trains.splice(trainIndex, 1);
+    }
+
+    fs.writeFile(filePath, JSON.stringify(trains, null, 2), (err) => {
+      if (err) {
+        console.error(err);
+        res.status(500).send("Error writing file");
+        return;
+      }
+
+      res.status(200).send(`Successfully deleted train with id ${id}`);
+    });
+  });
+});
